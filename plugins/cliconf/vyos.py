@@ -208,7 +208,7 @@ class Cliconf(CliconfBase):
         diff_match="line",
         diff_ignore_lines=None,
         path=None,
-        diff_replace=None,
+        diff_replace=False,
     ):
         diff = {}
         device_operations = self.get_device_operations()
@@ -223,8 +223,8 @@ class Cliconf(CliconfBase):
                 % (diff_match, ", ".join(option_values["diff_match"])),
             )
 
-        if diff_replace:
-            raise ValueError("'replace' in diff is not supported")
+        # if diff_replace:
+        #     raise ValueError("'replace' in diff is not supported")
 
         if diff_ignore_lines:
             raise ValueError("'diff_ignore_lines' in diff is not supported")
@@ -277,6 +277,12 @@ class Cliconf(CliconfBase):
                         if entry.startswith(item) and line not in visited:
                             updates.append(line)
                             visited.add(line)
+
+        if diff_replace:
+            for line in running_commands:
+                if line.startswith("set") and line not in candidate_commands:
+                    line = re.sub(r"set", "delete", line)
+                    updates.append(line)
 
         diff["config_diff"] = list(updates)
         return diff
